@@ -438,7 +438,7 @@ startServer = () => {
 
 startServer()
 
- cron.schedule("* * * * *", function() {
+ cron.schedule("* 5 * * *", function() {
      console.log("running a task every minute");
      writeSchoolSubjectData();
      writeTeacherCountinCourse();
