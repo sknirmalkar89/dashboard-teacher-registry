@@ -310,14 +310,17 @@ const writeCoursesCountToJson=(teachers,callback)=>{
     teachers.forEach(teacher=>{
       
        //Get subject count for each school
-       teacher.courses.forEach(course=>{
+       if(teacher.courses ){
+        
+            teacher.courses.forEach(course=>{
 
-           if(map.has(course.courseName)){
-               map.set(course.courseName,map.get(course.courseName)+1);
-           }else{
-               map.set(course.courseName,1);
-           }
-       });
+                if(map.has(course.courseName)){
+                    map.set(course.courseName,map.get(course.courseName)+1);
+                }else{
+                    map.set(course.courseName,1);
+                }
+            });
+      }
      
     })
 
