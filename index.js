@@ -199,7 +199,7 @@ const readCourseDetailsFromTeachers=(teacherList,token,callback)=>{
         getTeacherCoursesById(teacher.osid,headers,callback);  
      });         
    });
-   async.parallel(tasks,function(err, results) {
+   async.parallelLimit(tasks,4,function(err, results) {
            callback(null,results)
            
    });
@@ -225,7 +225,7 @@ const readTeachingRole=(teacherSchoolDetails,token,callback)=>{
             getTeacherCoursesById(teacher.osid,headers,callback);  
         });         
     });
-   async.parallel(tasks,function(err, results) {
+   async.parallelLimit(tasks,4,function(err, results) {
            teacherSchoolDetails.Teacher = results
            callback(null,teacherSchoolDetails)
            
@@ -368,7 +368,12 @@ const writeSchoolSubjectData =()=>{
             readSchoolData(token,callback);
         },
         function(schoolList,token,callback){
-            readTeachersData(schoolList,token, callback);
+            if(schoolList && schoolList.length > 0){
+
+               readTeachersData(schoolList,token, callback);
+            }else{
+              callback("No school found");
+            }
         },function(infoObj,token, callback){
             readTeachingRole(infoObj,token,callback)
         },
@@ -376,11 +381,11 @@ const writeSchoolSubjectData =()=>{
             writeObjectToChartJsFormat(infoObj,callback);
         }
     ],function(err,data){
-
-        data = JSON.stringify(data);
-        fs.writeFileSync('./data/school-stackbar.json', data);
-        console.log(data);
-
+        if(data){
+            data = JSON.stringify(data);
+            fs.writeFileSync('./data/school-stackbar.json', data);
+            console.log(data);
+        }
     })
     
 
@@ -400,25 +405,27 @@ const writeTeacherCountinCourse =()=>{
             readTeachersCompleteData(token, callback1);
         },
         function(teachersList,token,callback2){
+            if(teachersList && teachersList.length > 0){
              readCourseDetailsFromTeachers(teachersList,token, callback2)
+            }else{
+                callback2("No Teachers found")
+            }
         },
         function(teachers,callback2){
             writeCoursesCountToJson(teachers,callback2);
         }
     ],function(err,data){
-
-        data = JSON.stringify(data);
-        fs.writeFileSync('./data/course-bar.json', data);
-        console.log(data);
+       if(data){
+            data = JSON.stringify(data);
+            fs.writeFileSync('./data/course-bar.json', data);
+            console.log(data);
+       }
 
     })
     
 
      
 }
-
-
-
 
 
 const getDefaultHeaders = (token) => {
@@ -441,8 +448,11 @@ startServer = () => {
 
 startServer()
 
- cron.schedule("* 5 * * *", function() {
+ cron.schedule("*/50 * * * * *", function() {
      console.log("running a task every minute");
      writeSchoolSubjectData();
-     writeTeacherCountinCourse();
+     setTimeout(function () {
+        writeTeacherCountinCourse();
+
+      }, 20000)
  });
